@@ -531,6 +531,9 @@
 
   // ---------- Start ----------
 
+  // Opened from disk, "./" would show the folder; point at this file instead.
+  if (location.protocol === "file:") $("home").href = location.pathname;
+
   LC.chart.attach($("chart"));
   $("ref-paddle").innerHTML = LC.PADDLE_TO_FLOW.map(([a, b]) => `<tr><td>${a}%</td><td>${b}</td></tr>`).join("");
   $("ref-pressure").innerHTML = LC.PRESSURE_TO_FLOW.map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join("");

@@ -187,12 +187,16 @@
     $("lcc").innerHTML = slots.map((s) => {
       const k = `<span class="k">P${s.slot}</span>`;
       if (s.untilStop) return `<li>${k}<span class="p">${s.pressure.toFixed(1)} <small>bar</small></span><span class="s stop">until stop</span></li>`;
-      if (s.pressure === null) return `<li>${k}<span class="off">not used</span><span class="off">0 s</span></li>`;
-      return `<li>${k}<span class="p">${s.pressure.toFixed(1)} <small>bar</small></span><span class="s">${s.seconds} s</span></li>`;
+      if (s.unused) return `<li>${k}<span class="off">0 bar</span><span class="off">0 s</span></li>`;
+      const spare = s.spare ? `<small class="spare">incl. ${s.spare} s spare</small>` : "";
+      return `<li>${k}<span class="p">${s.pressure.toFixed(1)} <small>bar</small></span><span class="s">${s.seconds} s${spare}</span></li>`;
     }).join("");
     const stopAt = profile.targetWeight > 0 ? `Stop the shot at ${fmt1(profile.targetWeight)} g on the scale, around ${total} s in.` : `Stop the shot around ${total} s in.`;
-    const skipped = slots.some((s) => s.pressure === null) ? " Unused steps are set to 0 s so they're skipped." : "";
-    $("lcc-after").textContent = `Brew at ${fmt1(profile.temperature)}°C. P5 runs until you stop the shot or the button's max time ends, so set the max time a little longer than the shot. ${stopAt}${skipped}`;
+    const lastSlot = slots[steps.length - 1];
+    const ending = lastSlot && lastSlot.untilStop
+      ? "P5 runs until you stop the shot or the button's max time ends, so set the max time a little longer than the shot."
+      : `The last step has ${LC.LELIT.lastStepSpare} spare seconds in case your shot runs long; the steps after it are 0 bar, 0 s, so the machine skips them.`;
+    $("lcc-after").textContent = `Brew at ${fmt1(profile.temperature)}°C. ${stopAt} ${ending}`;
 
     // Paddle guide
     $("guide").innerHTML = guide.map((g) => `
@@ -209,7 +213,7 @@
 
     state.copyText = [
       `Lelit3 profile: ${profile.name}`,
-      ...slots.map((s) => s.untilStop ? `P${s.slot}  ${s.pressure.toFixed(1)} bar  until stop` : s.pressure === null ? `P${s.slot}  0 s (not used)` : `P${s.slot}  ${s.pressure.toFixed(1)} bar  ${s.seconds} s`),
+      ...slots.map((s) => s.untilStop ? `P${s.slot}  ${s.pressure.toFixed(1)} bar  until stop` : s.unused ? `P${s.slot}  0 bar  0 s` : `P${s.slot}  ${s.pressure.toFixed(1)} bar  ${s.seconds} s${s.spare ? ` (incl. ${s.spare} s spare)` : ""}`),
       `${fmt1(profile.temperature)}°C, stop at ${profile.targetWeight > 0 ? `${fmt1(profile.targetWeight)} g, ` : ""}around ${total} s`,
       state.url ? `From ${state.url}` : "",
     ].filter(Boolean).join("\n");

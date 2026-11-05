@@ -82,17 +82,22 @@
     return steps;
   }
 
-  // Places fitted steps on the machine's P1–P5. On the Lelit3, P5 has no
-  // time: it runs until the shot is stopped (or the button's max time). So the
-  // last step always goes on P5, earlier ones on P1 onwards, and any unused
-  // slots in between are set to 0 s.
+  // Places fitted steps on the machine's P1-P5, in order from P1. Unused
+  // slots after them are 0 bar / 0 s so the machine skips them. P5 has no
+  // time on the Lelit3 (it runs until the shot is stopped), so only a full
+  // 5-step profile uses it; otherwise the last step gets a few spare seconds
+  // in case the shot runs a little long.
   function toSlots(steps) {
-    const n = LC.LELIT.maxSteps;
-    const slots = Array.from({ length: n }, (_, i) => ({ slot: i + 1, pressure: null, seconds: 0, untilStop: false }));
+    const L = LC.LELIT;
+    const slots = Array.from({ length: L.maxSteps }, (_, i) => ({ slot: i + 1, pressure: 0, seconds: 0, unused: true, untilStop: false, spare: 0 }));
+    steps.forEach((s, i) => {
+      s.slot = i + 1;
+      Object.assign(slots[i], { pressure: s.pressure, seconds: s.seconds, unused: false });
+    });
     if (!steps.length) return slots;
-    steps.slice(0, -1).forEach((s, i) => Object.assign(slots[i], { pressure: s.pressure, seconds: s.seconds }));
-    Object.assign(slots[n - 1], { pressure: steps[steps.length - 1].pressure, seconds: null, untilStop: true });
-    steps.forEach((s, i) => (s.slot = i === steps.length - 1 ? n : i + 1));
+    const last = slots[steps.length - 1];
+    if (last.slot === L.maxSteps) Object.assign(last, { seconds: null, untilStop: true });
+    else Object.assign(last, { seconds: last.seconds + L.lastStepSpare, spare: L.lastStepSpare });
     return slots;
   }
 

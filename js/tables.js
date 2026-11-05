@@ -25,6 +25,7 @@
     riseRate: 2.0, // bar per second when climbing to a higher step
     fallRate: 1.5, // bar per second when dropping to a lower step
     headspace: 45, // ml of water needed before the gauge starts to climb
+    lastStepSpare: 10, // s added to the last step when it isn't on P5
   };
 
   // Linear interpolation in a sorted [[x, y], ...] table, clamped at the ends.

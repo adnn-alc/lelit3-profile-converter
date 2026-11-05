@@ -136,7 +136,7 @@
     if (!profile) return;
     const recorded = !!profile.recorded;
     const sim = LC.simulate(profile, { resistance: state.grind });
-    const intent = LC.intentCurve(sim.curve);
+    const intent = LC.intentCurve(sim.curve, sim.stages);
     const steps = LC.fitSteps(intent, { minSeconds: state.minSeconds });
     const slots = LC.toSlots(steps);
     const total = steps.reduce((a, s) => a + s.seconds, 0);
@@ -175,7 +175,7 @@
 
     // Warnings
     const warn = [];
-    if (fitErr > 0.8) warn.push("This profile changes more than 5 steps can follow, so the machine version is a simplification. The paddle guide follows every phase.");
+    if (fitErr > 0.8 || guide.length > LC.LELIT.maxSteps) warn.push(`This profile has ${guide.length} phases and the machine takes 5 steps, so the machine version is a simplification. The paddle guide follows every phase.`);
     if (Math.max(...sim.curve.map((c) => c[1])) > LC.LELIT.maxPressure + 0.25) warn.push(`The original goes above ${LC.LELIT.maxPressure} bar; the steps stop there.`);
     if (!recorded && profile.targetWeight > 0 && sim.finalWeight < profile.targetWeight * 0.9) {
       warn.push(`With this grind the simulated shot only reaches ${Math.round(sim.finalWeight)} g of ${fmt1(profile.targetWeight)} g. Try a coarser grind.`);
@@ -188,7 +188,8 @@
       const k = `<span class="k">P${s.slot}</span>`;
       if (s.untilStop) return `<li>${k}<span class="p">${s.pressure.toFixed(1)} <small>bar</small></span><span class="s stop">until stop</span></li>`;
       if (s.unused) return `<li>${k}<span class="off">0 bar</span><span class="off">0 s</span></li>`;
-      const spare = s.spare ? `<small class="spare">incl. ${s.spare} s spare</small>` : "";
+      const note = s.pressure === 0 ? "bloom" : s.spare ? `incl. ${s.spare} s spare` : "";
+      const spare = note ? `<small class="spare">${note}</small>` : "";
       return `<li>${k}<span class="p">${s.pressure.toFixed(1)} <small>bar</small></span><span class="s">${s.seconds} s${spare}</span></li>`;
     }).join("");
     const stopAt = profile.targetWeight > 0 ? `Stop the shot at ${fmt1(profile.targetWeight)} g on the scale, around ${total} s in.` : `Stop the shot around ${total} s in.`;
@@ -213,7 +214,7 @@
 
     state.copyText = [
       `Lelit3 profile: ${profile.name}`,
-      ...slots.map((s) => s.untilStop ? `P${s.slot}  ${s.pressure.toFixed(1)} bar  until stop` : s.unused ? `P${s.slot}  0 bar  0 s` : `P${s.slot}  ${s.pressure.toFixed(1)} bar  ${s.seconds} s${s.spare ? ` (incl. ${s.spare} s spare)` : ""}`),
+      ...slots.map((s) => s.untilStop ? `P${s.slot}  ${s.pressure.toFixed(1)} bar  until stop` : s.unused ? `P${s.slot}  0 bar  0 s` : `P${s.slot}  ${s.pressure.toFixed(1)} bar  ${s.seconds} s${s.pressure === 0 ? " (bloom)" : ""}${s.spare ? ` (incl. ${s.spare} s spare)` : ""}`),
       `${fmt1(profile.temperature)}°C, stop at ${profile.targetWeight > 0 ? `${fmt1(profile.targetWeight)} g, ` : ""}around ${total} s`,
       state.url ? `From ${state.url}` : "",
     ].filter(Boolean).join("\n");

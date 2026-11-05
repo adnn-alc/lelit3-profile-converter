@@ -55,18 +55,6 @@
     return ph ? ph.points.map((p) => p[1]).filter((v) => v !== null) : [];
   }
 
-  function isBloom(s, i) {
-    const ph = s.phase;
-    if (ph) {
-      const v = targets(ph);
-      const top = v.length ? Math.max(...v) : 0;
-      if (ph.maxPressure === 0) return true;
-      if (ph.control === "pressure") return top <= 0.3;
-      return top <= 0.1;
-    }
-    return i > 0 && s.qAvg < 0.3 && s.pmax < 1.5;
-  }
-
   // Paddle % for the original fill flow or power, else for the measured flow.
   function fillPaddle(s) {
     const ph = s.phase;
@@ -133,7 +121,7 @@
         paddle = fillPaddle(s);
         action = `Open the paddle to ${paddle}% to fill the basket`;
         gauge = [0, s.p1];
-      } else if (isBloom(s, i)) {
+      } else if (LC.isBloom(s, i)) {
         kind = "bloom";
         paddle = 0;
         action = "Paddle to 0%, valve stays open (bloom)";

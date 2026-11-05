@@ -12,27 +12,34 @@
     const maxSteps = (opts && opts.maxSteps) || L.maxSteps;
     if (!curve.length) return [];
 
-    // Average the curve into 1-second bins.
+    // Average the curve into 1-second bins. Bloom seconds (third column set)
+    // weigh much more, so a bloom stays an exact 0 bar step with clean edges.
+    const BLOOM_WEIGHT = 8;
     const n = Math.max(1, Math.ceil(curve[curve.length - 1][0] - 1e-9));
     const sum = new Array(n).fill(0);
     const cnt = new Array(n).fill(0);
-    curve.forEach(([t, p]) => {
+    const bloom = new Array(n).fill(0);
+    curve.forEach(([t, p, isBloom]) => {
       const b = Math.min(n - 1, Math.max(0, Math.floor(t)));
       sum[b] += p;
       cnt[b]++;
+      if (isBloom) bloom[b]++;
     });
     const bins = sum.map((s, i) => (cnt[i] ? s / cnt[i] : null));
     for (let i = 0; i < n; i++) if (bins[i] === null) bins[i] = i ? bins[i - 1] : 0;
+    const weight = bloom.map((b, i) => 1 + (BLOOM_WEIGHT - 1) * (cnt[i] ? b / cnt[i] : 0));
 
-    const S = [0], S2 = [0];
+    const Wt = [0], S = [0], S2 = [0];
     bins.forEach((v, i) => {
-      S.push(S[i] + v);
-      S2.push(S2[i] + v * v);
+      const w = weight[i];
+      Wt.push(Wt[i] + w);
+      S.push(S[i] + w * v);
+      S2.push(S2[i] + w * v * v);
     });
-    const level = (a, b) => LC.clamp(LC.roundHalf((S[b] - S[a]) / (b - a)), L.minPressure, L.maxPressure);
+    const level = (a, b) => LC.clamp(LC.roundHalf((S[b] - S[a]) / (Wt[b] - Wt[a])), L.minPressure, L.maxPressure);
     const cost = (a, b) => {
       const mu = level(a, b);
-      return S2[b] - S2[a] - 2 * mu * (S[b] - S[a]) + (b - a) * mu * mu;
+      return S2[b] - S2[a] - 2 * mu * (S[b] - S[a]) + (Wt[b] - Wt[a]) * mu * mu;
     };
 
     const minLen = Math.min(minSeconds, n);

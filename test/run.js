@@ -44,7 +44,7 @@ function rms(a, b) {
     else profile = LC.sources.fellow.parse(LC.sources.fellow.SAMPLE);
 
     const sim = LC.simulate(profile);
-    const intent = LC.intentCurve(sim.curve);
+    const intent = LC.intentCurve(sim.curve, sim.stages);
     for (const minSeconds of [2, 4]) {
       const steps = LC.fitSteps(intent, { minSeconds });
       const total = steps.reduce((a, s) => a + s.seconds, 0);
@@ -53,6 +53,7 @@ function rms(a, b) {
       check(steps.every((s) => s.seconds >= Math.min(minSeconds, total)), `${profile.name}: a step is shorter than ${minSeconds} s`);
       check(steps.every((s) => s.pressure >= 0 && s.pressure <= 10 && (s.pressure * 2) % 1 === 0), `${profile.name}: pressure out of range or not in 0.5 steps`);
       const slots = LC.toSlots(steps);
+      if (profile.name === "Adaptive v2") check(steps.some((s) => s.pressure === 0 && s.seconds >= 5), "Adaptive v2: the 6 s Dripping bloom should be a 0 bar step");
       check(slots.length === 5 && slots.every((s, i) => s.unused === (i >= steps.length)), `${profile.name}: steps aren't packed from P1`);
       check(steps.every((s, i) => slots[i].pressure === s.pressure), `${profile.name}: slot pressures don't match the steps`);
       const lastSlot = slots[steps.length - 1];

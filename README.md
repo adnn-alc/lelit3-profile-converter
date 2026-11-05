@@ -8,7 +8,8 @@ something you can pull on a **Lelit Victoria3 or Elizabeth3**.
 ## What you get
 
 - **On the machine:** up to 5 pressure steps (bar and seconds) to program into
-  coffee button 1 or 2. Steps you don't need stay at 0 bar, 0 s.
+  coffee button 1 or 2. Blooms become 0 bar steps (the pump pauses for that
+  long). Steps you don't need stay at 0 bar, 0 s.
 - **By hand with the paddle:** a phase-by-phase guide with where to put the
   paddle, what the gauge should read, and when to move on.
 - **A chart** comparing the original pressure with what the Lelit will do.

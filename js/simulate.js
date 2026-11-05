@@ -158,13 +158,29 @@
   // except the opening fill: there the gauge reads ~0 only because the basket
   // is still filling. A 0 bar step would switch the Lelit pump off, so instead
   // we pick the step pressure whose free flow matches the original fill flow.
-  function intentCurve(curve) {
+  // A bloom: the original pauses the pump and lets the puck soak. The Lelit
+  // does the same with a 0 bar step. Known phases are judged by what they
+  // ask for; recorded phases without a matching profile by the data.
+  function isBloom(stage, index) {
+    if (index === 0) return false;
+    const ph = stage.phase;
+    if (ph) {
+      const v = ph.points.map((p) => p[1]).filter((x) => x !== null);
+      const top = v.length ? Math.max(...v) : 0;
+      if (ph.maxPressure === 0) return true;
+      if (ph.control === "pressure") return top <= 0.3;
+      return top <= 0.1;
+    }
+    return stage.qAvg < 0.3 && (stage.pmax < 1.5 || stage.p1 < stage.p0 - 1);
+  }
+
+  function intentCurve(curve, stages) {
     const out = curve.map((c) => [c[0], c[4] != null ? Math.max(c[1], c[4]) : c[1]]);
     // The fill is over once the gauge shows real pressure (a fast fill alone
     // reads ~1.3 bar on a Decent). Low-pressure profiles never get there,
     // so the bar is lowered for them.
     const top = Math.max(0, ...curve.map((c) => c[1]));
-    if (top < 0.3) return out;
+    if (top < 0.3) { zeroBlooms(out, stages); return out; }
     const threshold = Math.min(1.5, 0.7 * top);
     let V = 0, end = -1, qSum = 0, qN = 0;
     for (let i = 0; i < curve.length; i++) {
@@ -173,7 +189,7 @@
       V += q * (i ? t - curve[i - 1][0] : t);
       if (q > 0.1) { qSum += q; qN++; }
     }
-    if (end <= 0) return out;
+    if (end <= 0) { zeroBlooms(out, stages); return out; }
     // A steep climb straight after the fill (faster than 1 bar/s) is the
     // puck pressurising, not a step of its own: the Lelit ramps by itself.
     let rampEnd = end;
@@ -196,7 +212,16 @@
     fillP = LC.clamp(LC.roundHalf(Math.max(0.5, fillP)), 0.5, LC.LELIT.maxPressure);
     // Fill samples that already carry a pressure target keep it.
     for (let i = 0; i < rampEnd; i++) if (curve[i][4] == null) out[i][1] = fillP;
+    zeroBlooms(out, stages);
     return out;
+  }
+
+  // During a bloom the gauge drains slowly, but the intent is "pump off".
+  function zeroBlooms(out, stages) {
+    (stages || []).forEach((s, i) => {
+      if (!isBloom(s, i)) return;
+      out.forEach((c) => { if (c[0] > s.t0 && c[0] <= s.t1) { c[1] = 0; c[2] = 1; } });
+    });
   }
 
   // What a Lelit running the given steps should roughly show on the gauge.
@@ -226,6 +251,7 @@
 
   LC.simulate = simulate;
   LC.intentCurve = intentCurve;
+  LC.isBloom = isBloom;
   LC.lelitResponse = lelitResponse;
   LC.SIM_DEFAULTS = DEFAULTS;
 })();

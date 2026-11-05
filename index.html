@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lelit profile converter</title>
+  <meta name="description" content="Turn Meticulous, Decent and Fellow espresso profiles into Lelit Victoria3 and Elizabeth3 pressure steps, or a step-by-step paddle guide.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="page">
+    <header class="masthead">
+      <h1>Lelit profile converter</h1>
+      <p class="lede">Turn a Meticulous, Decent or Fellow espresso profile into the 5 pressure steps of a Victoria3 or Elizabeth3, or pull it by hand with the paddle.</p>
+    </header>
+
+    <section class="loader" aria-label="Load a profile">
+      <form id="link-form" class="link-row">
+        <label for="link" class="sr-only">Profile link</label>
+        <input id="link" type="url" inputmode="url" autocomplete="off" spellcheck="false"
+               placeholder="https://metprofiles.link/profile/…">
+        <button type="submit" class="primary">Convert</button>
+        <label class="file-button">
+          <input id="file" type="file" accept=".json,application/json">
+          <span>Open .json file</span>
+        </label>
+      </form>
+      <p class="hint">Works with links from <a href="https://metprofiles.link" target="_blank" rel="noopener">metprofiles.link</a> and
+        <a href="https://visualizer.coffee" target="_blank" rel="noopener">visualizer.coffee</a>, exported profile files,
+        or <button type="button" class="linkish" id="fellow-open">a Fellow Series 1 profile</button>.</p>
+      <div class="samples">
+        <span>Try</span>
+        <button type="button" class="chip" data-sample="https://metprofiles.link/profile/81498c90-4b9d-4848-a817-600deb38917c">80's Espresso <small>Meticulous</small></button>
+        <button type="button" class="chip" data-sample="https://metprofiles.link/profile/1d619dc5-e318-4c09-89e0-3bf5dbb58cb1">Milky Drinks <small>Meticulous</small></button>
+        <button type="button" class="chip" data-sample="https://visualizer.coffee/shots/2ab2b66b-b067-4d3f-b690-b8dd5a30a930">Londonium <small>Decent shot</small></button>
+        <button type="button" class="chip" data-sample="fellow">Slayer <small>Fellow</small></button>
+      </div>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+
+      <form id="fellow-form" class="fellow" novalidate hidden>
+        <h2>Fellow Series 1 profile</h2>
+        <p class="hint">Fellow doesn't let other sites read brew.link pages. Open the link, tap <em>View profile details</em> and copy the numbers here.</p>
+        <div class="grid">
+          <label class="wide">Name <input name="title" type="text"></label>
+          <label>Temperature °C <input name="temperature" type="number" step="any" min="70" max="100"></label>
+          <label>Dose g <input name="dose" type="number" step="any" min="5" max="30"></label>
+          <label>Ratio 1: <input name="ratio" type="number" step="any" min="0.5" max="6"></label>
+          <label>Transition
+            <select name="transition"><option value="fast">Fast</option><option value="smooth">Smooth</option></select>
+          </label>
+        </div>
+        <fieldset>
+          <legend><label><input name="preInfusionEnabled" type="checkbox"> Pre-infusion</label></legend>
+          <div class="grid">
+            <label>Fill flow ml/s <input name="preInfusionFillFlowRate" type="number" step="any" min="0.5" max="10"></label>
+            <label>Hold pressure bar <input name="preInfusionHoldPressure" type="number" step="any" min="0" max="10"></label>
+            <label>Duration s <input name="preInfusionDuration" type="number" step="any" min="0" max="120"></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Infusion</legend>
+          <div id="infusion-rows"></div>
+          <button type="button" id="add-infusion" class="quiet">Add infusion step</button>
+        </fieldset>
+        <fieldset>
+          <legend><label><input name="rampDownEnabled" type="checkbox"> Ramp down</label></legend>
+          <div class="grid">
+            <label>End pressure bar <input name="rampDownEndPressure" type="number" step="any" min="0" max="10"></label>
+            <label>Duration s <input name="rampDownDuration" type="number" step="any" min="0" max="120"></label>
+          </div>
+        </fieldset>
+        <div class="row">
+          <button type="submit" class="primary">Convert</button>
+          <button type="button" id="fellow-close" class="quiet">Close</button>
+          <span id="fellow-error" class="field-error" role="alert"></span>
+        </div>
+      </form>
+    </section>
+
+    <section id="result" class="result" hidden>
+      <div class="profile-head">
+        <div>
+          <h2 id="p-name"></h2>
+          <p id="p-by" class="by"></p>
+        </div>
+        <dl class="facts">
+          <div><dt>Brew temperature</dt><dd id="f-temp"></dd></div>
+          <div><dt>Target in the cup</dt><dd id="f-weight"></dd></div>
+          <div><dt>Shot time</dt><dd id="f-time"></dd></div>
+        </dl>
+      </div>
+      <details id="p-notes-wrap" class="notes"><summary>Profile notes</summary><p id="p-notes"></p></details>
+
+      <figure class="chart-wrap">
+        <div class="legend" aria-hidden="true">
+          <span><i class="sw sw-src"></i>Original pressure</span>
+          <span><i class="sw sw-steps"></i>Lelit steps</span>
+          <span><i class="sw sw-gauge"></i>What the Lelit gauge should show</span>
+        </div>
+        <canvas id="chart" role="img" aria-label="Pressure over time"></canvas>
+        <figcaption id="chart-caption"></figcaption>
+      </figure>
+
+      <div class="controls">
+        <fieldset class="radios">
+          <legend>Shortest step</legend>
+          <label><input type="radio" name="minsec" value="2"> 2 s</label>
+          <label><input type="radio" name="minsec" value="3"> 3 s</label>
+          <label><input type="radio" name="minsec" value="4"> 4 s</label>
+          <label><input type="radio" name="minsec" value="5"> 5 s</label>
+        </fieldset>
+        <div id="grind-wrap" class="grind">
+          <label for="grind">Grind</label>
+          <span class="end">Coarser</span>
+          <input id="grind" type="range" min="2" max="18" step="0.5">
+          <span class="end">Finer</span>
+          <output id="grind-out" for="grind"></output>
+        </div>
+      </div>
+      <p id="warnings" class="warning" hidden></p>
+
+      <div class="columns">
+        <section class="col" aria-labelledby="machine-h">
+          <h3 id="machine-h">On the machine</h3>
+          <p class="sub">Program coffee button 1 or 2 in the LCC menu: turn the profile on, then set each step's pressure and time.</p>
+          <ol id="lcc" class="lcc"></ol>
+          <p id="lcc-after" class="after"></p>
+          <button type="button" id="copy" class="quiet">Copy steps</button>
+        </section>
+        <section class="col" aria-labelledby="paddle-h">
+          <h3 id="paddle-h">By hand with the paddle</h3>
+          <p class="sub">Open the paddle to start; the Lelit shows the shot timer. Steer by the gauge: the paddle % is only where to start.</p>
+          <ol id="guide" class="guide"></ol>
+        </section>
+      </div>
+
+      <aside class="note">
+        <h3>Why it won't be a perfect copy</h3>
+        <p>Meticulous and Decent machines can steer by flow and let the pressure follow the puck. The Lelit holds a target pressure (profiles) or a pump power (paddle) instead. This converter copies the shape and timing of the pressure curve, which is what you can see and control on the Lelit.</p>
+        <p>Dial in with the grind first. If the gauge stays below the targets, grind finer. If it overshoots them or the shot runs fast, go coarser.</p>
+      </aside>
+    </section>
+
+    <footer class="foot">
+      <details>
+        <summary>Paddle reference</summary>
+        <div class="ref">
+          <table><caption>Paddle position</caption><thead><tr><th>Paddle</th><th>ml/s</th></tr></thead><tbody id="ref-paddle"></tbody></table>
+          <table><caption>Profile pressure</caption><thead><tr><th>bar</th><th>ml/s</th></tr></thead><tbody id="ref-pressure"></tbody></table>
+        </div>
+        <p class="hint">Measured with no coffee in the basket. With a puck the same setting flows much less, which is why the guide asks you to watch the gauge.</p>
+      </details>
+      <p>Profiles belong to their authors. Nothing is uploaded: files you open stay in your browser.
+        <a href="https://github.com/adnn-alc/lelit-converter" target="_blank" rel="noopener">Source on GitHub</a></p>
+    </footer>
+  </main>
+
+  <script src="js/tables.js"></script>
+  <script src="js/sources/meticulous.js"></script>
+  <script src="js/sources/decent.js"></script>
+  <script src="js/sources/fellow.js"></script>
+  <script src="js/simulate.js"></script>
+  <script src="js/fit.js"></script>
+  <script src="js/guide.js"></script>
+  <script src="js/chart.js"></script>
+  <script src="js/load.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

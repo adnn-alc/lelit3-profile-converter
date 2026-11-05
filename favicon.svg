@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    .steam { stroke: #8d969c; }
+    .cup { fill: #b8791a; }
+    .handle { stroke: #b8791a; }
+    .crema { fill: #e8c27a; }
+    .saucer { fill: #5b656d; }
+    @media (prefers-color-scheme: dark) {
+      .steam { stroke: #c9cfd3; }
+      .cup { fill: #d9a441; }
+      .handle { stroke: #d9a441; }
+      .crema { fill: #f3dcae; }
+      .saucer { fill: #9aa3aa; }
+    }
+  </style>
+  <path class="steam" d="M25 20c-3-3 3-6 0-9s3-6 0-8M35 20c-3-3 3-6 0-9s3-6 0-8" fill="none" stroke-width="3.2" stroke-linecap="round"/>
+  <path class="handle" d="M46 30h3a6 6 0 0 1 0 12h-4" fill="none" stroke-width="4.5" stroke-linecap="round"/>
+  <path class="cup" d="M12 25h36l-3.2 19A8 8 0 0 1 36.9 51H23.1a8 8 0 0 1-7.9-7z"/>
+  <ellipse class="crema" cx="30" cy="25.5" rx="18" ry="3.2"/>
+  <rect class="saucer" x="6" y="53.5" width="48" height="5" rx="2.5"/>
+</svg>

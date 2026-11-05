@@ -16,13 +16,20 @@ something you can pull on a **Lelit Victoria3 or Elizabeth3**.
 
 ## How to use it
 
-1. Paste a profile link, or open a profile `.json` file.
+1. Paste a profile link, open a profile `.json` file, or pick one of the
+   starting points (light, medium and dark roast, milk drinks, turbo, bloom).
 2. Pick the shortest step you want (2–5 s). Short wiggles get folded into
    longer steps.
-3. Program the steps into your machine, or follow the paddle guide.
-4. Dial in with the grind: if the gauge stays below the targets, grind finer;
+3. Change the target weight if you want a different yield; the steps and
+   shot time follow.
+4. Program the steps into your machine, or follow the paddle guide. To tweak
+   a step, press **Edit steps**; the chart redraws as you type.
+5. Dial in with the grind: if the gauge stays below the targets, grind finer;
    if it overshoots or the shot runs fast, go coarser. Stop the shot at the
    target weight on your scale.
+
+Your last few conversions, with your edits, are kept under **Recent** in
+this browser.
 
 ## Supported profiles
 
@@ -50,7 +57,8 @@ guide still follows every phase.
 
 ## Privacy
 
-Everything runs in your browser. Files you open are never uploaded.
+Everything runs in your browser. Files you open are never uploaded, and the
+Recent list stays in your browser's storage.
 
 ## Offline use
 

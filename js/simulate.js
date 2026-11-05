@@ -29,8 +29,11 @@
     return LC.interp(points, x);
   }
 
+  // opts.targetWeight overrides the profile's target (grams in the cup).
   function simulate(profile, opts) {
-    if (profile.recorded) return fromRecording(profile);
+    const target = opts && opts.targetWeight != null ? opts.targetWeight : null;
+    if (profile.recorded) return fromRecording(profile, target);
+    if (target != null) profile = Object.assign({}, profile, { targetWeight: target });
     const o = Object.assign({}, DEFAULTS, opts || {});
     const k = o.resistance / 2;
     let t = 0, V = 0, W = 0, P = 0, Q = 0, tSat = null, tWet = null;
@@ -129,10 +132,36 @@
     });
   }
 
-  function fromRecording(profile) {
+  // A different target weight on a recorded shot: stop the real curve where
+  // the scale reached it, or carry on at the final pressure and flow rate.
+  function retarget(curve, target) {
+    if (!(target > 0) || curve.length < 2) return curve;
+    const lastW = curve[curve.length - 1][3];
+    if (target < lastW - 0.5) {
+      const i = curve.findIndex((c) => c[3] >= target);
+      return i > 0 ? curve.slice(0, i + 1) : curve;
+    }
+    if (target <= lastW + 0.5) return curve;
+    const end = curve[curve.length - 1];
+    const back = curve.filter((c) => c[0] >= end[0] - 5);
+    const rate = Math.max(0.5, (end[3] - back[0][3]) / Math.max(1, end[0] - back[0][0]));
+    const p = back.reduce((a, c) => a + c[1], 0) / back.length;
+    const f = back.reduce((a, c) => a + c[2], 0) / back.length;
+    const out = curve.slice();
+    const extra = Math.min(120, (target - lastW) / rate);
+    for (let dt = 0.25; dt <= extra + 1e-9; dt += 0.25) out.push([end[0] + dt, p, f, lastW + rate * dt]);
+    return out;
+  }
+
+  function fromRecording(profile, targetWeight) {
     const r = profile.recorded;
-    const curve = r.t.map((t, i) => [t, Math.max(0, r.p[i] || 0), r.f[i] || 0, r.w[i] || 0]);
-    const end = r.t[r.t.length - 1] || 0;
+    const raw = r.t.map((t, i) => [t, Math.max(0, r.p[i] || 0), r.f[i] || 0, r.w[i] || 0]);
+    // The cup keeps dripping after the shot stops, so keep that offset between
+    // the last scale reading and the final drink weight.
+    const lastRaw = raw.length ? raw[raw.length - 1][3] : 0;
+    const drip = LC.clamp((profile.targetWeight || lastRaw) - lastRaw, 0, 5);
+    const curve = targetWeight != null ? retarget(raw, targetWeight - drip) : raw;
+    const end = curve.length ? curve[curve.length - 1][0] : 0;
     const starts = r.phaseStarts.filter((s) => s < end);
     const named = profile.phases.length === starts.length;
     const stages = starts.map((t0, si) => {
@@ -154,10 +183,6 @@
     return { curve, stages, total: end, finalWeight: lastW, recorded: true };
   }
 
-  // The pressure the Lelit should aim for over time. Identical to the curve,
-  // except the opening fill: there the gauge reads ~0 only because the basket
-  // is still filling. A 0 bar step would switch the Lelit pump off, so instead
-  // we pick the step pressure whose free flow matches the original fill flow.
   // A bloom: the original pauses the pump and lets the puck soak. The Lelit
   // does the same with a 0 bar step. Known phases are judged by what they
   // ask for; recorded phases without a matching profile by the data.
@@ -174,6 +199,10 @@
     return stage.qAvg < 0.3 && (stage.pmax < 1.5 || stage.p1 < stage.p0 - 1);
   }
 
+  // The pressure the Lelit should aim for over time. Identical to the curve,
+  // except the opening fill: there the gauge reads ~0 only because the basket
+  // is still filling. A 0 bar step would switch the Lelit pump off, so instead
+  // we pick the step pressure whose free flow matches the original fill flow.
   function intentCurve(curve, stages) {
     const out = curve.map((c) => [c[0], c[4] != null ? Math.max(c[1], c[4]) : c[1]]);
     // The fill is over once the gauge shows real pressure (a fast fill alone

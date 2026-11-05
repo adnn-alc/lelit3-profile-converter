@@ -100,6 +100,8 @@ button.linkish:focus-visible { outline: 2px solid var(--src); }
 .samples { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 14px; font-size: 15px; color: var(--muted); }
 .chip { height: 34px; padding: 0 12px; font-size: 15px; gap: 6px; }
 .chip small { color: var(--muted); font-size: 13px; }
+.recent-list { display: contents; }
+.recent .chip small { font-size: 12px; }
 .status { min-height: 1.5em; margin: 12px 0 0; font-size: 15px; color: var(--muted); }
 .status.error { color: var(--danger); }
 
@@ -126,6 +128,16 @@ button.linkish:focus-visible { outline: 2px solid var(--src); }
 .facts { display: flex; gap: 28px; margin: 0; }
 .facts dt { font-size: 13px; color: var(--muted); }
 .facts dd { margin: 0; font: 500 26px/1.1 var(--cond); font-variant-numeric: tabular-nums; }
+.facts dt label { color: inherit; }
+.facts .target { display: flex; align-items: baseline; gap: 4px; }
+.facts .target input {
+  width: 4.2ch; height: auto; padding: 0 2px; border: 0; border-bottom: 1px dashed var(--muted);
+  border-radius: 0; background: transparent; font: inherit; color: inherit; -moz-appearance: textfield;
+}
+.facts .target input::-webkit-outer-spin-button, .facts .target input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.facts .target input:focus-visible { outline: 2px solid var(--src); outline-offset: 2px; }
+.facts .target .linkish { font: 400 13px var(--body); margin-left: 6px; }
+.facts .field-error { font: 400 13px var(--body); max-width: 18ch; }
 .notes { margin-top: 12px; color: var(--muted); font-size: 15px; }
 .notes summary { cursor: pointer; }
 .notes p { white-space: pre-line; max-width: 75ch; }
@@ -188,6 +200,19 @@ figcaption { font-size: 14px; color: var(--muted); margin-top: 6px; }
 .lcc .s .spare { display: block; font: 400 12px var(--body); color: var(--lcc-dim); text-align: right; }
 .lcc .off { color: #5c656b; font-size: 18px; }
 .after { color: var(--muted); font-size: 15px; margin: 12px 0; }
+.row-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+#edit[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.edited { margin: 10px 0 0; font-size: 14px; color: var(--warn-ink); background: var(--warn-bg); padding: 8px 12px; border-radius: var(--radius); }
+.edited .linkish { margin-left: 4px; }
+.lcc input {
+  font: 500 30px/1 var(--cond); color: var(--lcc-ink); background: transparent; width: 3.4ch;
+  border: 0; border-bottom: 1px dashed var(--lcc-dim); padding: 0; height: auto; border-radius: 0;
+  font-variant-numeric: tabular-nums; -moz-appearance: textfield;
+}
+.lcc input.sec { color: var(--lcc-amber); font-size: 26px; text-align: right; width: 3ch; }
+.lcc input::-webkit-outer-spin-button, .lcc input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.lcc input:focus-visible { outline: 2px solid var(--lcc-amber); outline-offset: 3px; }
+.lcc .s label { display: inline-flex; align-items: baseline; gap: 3px; }
 
 /* Paddle guide */
 .guide { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }

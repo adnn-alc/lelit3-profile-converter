@@ -37,11 +37,18 @@
         <a href="https://visualizer.coffee" target="_blank" rel="noopener">visualizer.coffee</a>, exported profile files,
         or <button type="button" class="linkish" id="fellow-open">a Fellow Series 1 profile</button>.</p>
       <div class="samples">
-        <span>Try</span>
-        <button type="button" class="chip" data-sample="https://metprofiles.link/profile/81498c90-4b9d-4848-a817-600deb38917c">80's Espresso <small>Meticulous</small></button>
-        <button type="button" class="chip" data-sample="https://metprofiles.link/profile/1d619dc5-e318-4c09-89e0-3bf5dbb58cb1">Milky Drinks <small>Meticulous</small></button>
-        <button type="button" class="chip" data-sample="https://visualizer.coffee/shots/2ab2b66b-b067-4d3f-b690-b8dd5a30a930">Londonium <small>Decent shot</small></button>
-        <button type="button" class="chip" data-sample="fellow">Slayer <small>Fellow</small></button>
+        <span>Starting points</span>
+        <button type="button" class="chip" data-sample="https://metprofiles.link/profile/49313b35-423e-4e8f-9db5-d0e9fa6c87f3">Light roast <small>Substance shot</small></button>
+        <button type="button" class="chip" data-sample="https://visualizer.coffee/shots/2ab2b66b-b067-4d3f-b690-b8dd5a30a930">Medium roast <small>Londonium</small></button>
+        <button type="button" class="chip" data-sample="https://metprofiles.link/profile/81498c90-4b9d-4848-a817-600deb38917c">Dark roast <small>80's Espresso</small></button>
+        <button type="button" class="chip" data-sample="https://metprofiles.link/profile/1d619dc5-e318-4c09-89e0-3bf5dbb58cb1">Milk drinks <small>Milky Drinks</small></button>
+        <button type="button" class="chip" data-sample="https://metprofiles.link/profile/83d1643d-c835-4c59-8ff5-e3debeafc5b0">Turbo <small>Soup v1.2</small></button>
+        <button type="button" class="chip" data-sample="https://visualizer.coffee/shots/5c76f85e-59fe-455e-8e51-21620349c427">Bloom <small>Blooming Espresso</small></button>
+      </div>
+      <div id="recent" class="samples recent" hidden>
+        <span>Recent</span>
+        <span id="recent-list" class="recent-list"></span>
+        <button type="button" id="recent-clear" class="linkish">Clear</button>
       </div>
       <p id="status" class="status" role="status" aria-live="polite"></p>
 
@@ -93,7 +100,12 @@
         </div>
         <dl class="facts">
           <div><dt>Brew temperature</dt><dd id="f-temp"></dd></div>
-          <div><dt>Target in the cup</dt><dd id="f-weight"></dd></div>
+          <div>
+            <dt><label for="target">Target in the cup</label></dt>
+            <dd class="target"><input id="target" type="number" inputmode="decimal" step="0.5" min="5" max="200"><span>g</span>
+              <button type="button" id="target-reset" class="linkish" hidden>reset</button></dd>
+            <dd id="target-error" class="field-error"></dd>
+          </div>
           <div><dt>Shot time</dt><dd id="f-time"></dd></div>
         </dl>
       </div>
@@ -132,8 +144,13 @@
           <h3 id="machine-h">On the machine</h3>
           <p class="sub">Program coffee button 1 or 2 in the LCC menu: turn the profile on, then set each step's pressure and time. A 0 bar step with a time is a bloom: the pump pauses. Steps you don't need stay at 0 bar, 0 s.</p>
           <ol id="lcc" class="lcc"></ol>
+          <p id="edited" class="edited" hidden>You've edited these steps. The chart shows your version.
+            <button type="button" id="edit-reset" class="linkish">Back to the converted steps</button></p>
           <p id="lcc-after" class="after"></p>
-          <button type="button" id="copy" class="quiet">Copy steps</button>
+          <div class="row-buttons">
+            <button type="button" id="edit" class="quiet" aria-pressed="false">Edit steps</button>
+            <button type="button" id="copy" class="quiet">Copy steps</button>
+          </div>
         </section>
         <section class="col" aria-labelledby="paddle-h">
           <h3 id="paddle-h">By hand with the paddle</h3>

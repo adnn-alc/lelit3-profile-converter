@@ -1,4 +1,4 @@
-# Lelit3 converter
+# Lelit3 profile converter
 
 Turn espresso profiles from other machines into something you can pull on a
 **Lelit Victoria3 or Elizabeth3**:
@@ -10,7 +10,7 @@ Turn espresso profiles from other machines into something you can pull on a
 - **By hand with the paddle:** a phase-by-phase guide with a paddle % to start
   from, the pressure to aim for on the gauge, and when to move on.
 
-**Use it here: https://adnn-alc.github.io/lelit3-converter/**
+**Use it here: https://adnn-alc.github.io/lelit3-profile-converter/**
 
 It runs entirely in the browser. Nothing to install, nothing uploaded.
 

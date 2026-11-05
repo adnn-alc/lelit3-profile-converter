@@ -9,6 +9,8 @@ Turn espresso profiles from other machines into something you can pull on a
 - **By hand with the paddle:** a phase-by-phase guide with a paddle % to start
   from, the pressure to aim for on the gauge, and when to move on.
 
+**Use it here: https://adnn-alc.github.io/lelit3-converter/**
+
 It runs entirely in the browser. Nothing to install, nothing uploaded.
 
 ## What it reads
@@ -93,11 +95,5 @@ test/run.js             conversion checks against real profiles
 
 Plain scripts, loaded in order (not ES modules), so the page also works when
 opened straight from disk.
-
-## Publish on GitHub Pages
-
-In the repository on GitHub: **Settings → Pages → Build and deployment →
-Deploy from a branch → `main` / root**. The site appears at
-`https://<user>.github.io/<repo>/` after a minute.
 
 Profiles belong to their authors.

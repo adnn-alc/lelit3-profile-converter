@@ -1,101 +1,60 @@
 # Lelit3 profile converter
 
-Turn espresso profiles from other machines into something you can pull on a
-**Lelit Victoria3 or Elizabeth3**:
+Turn espresso profiles from Meticulous, Decent and Fellow machines into
+something you can pull on a **Lelit Victoria3 or Elizabeth3**.
 
-- **On the machine:** up to 5 pressure steps to program into coffee button 1
-  or 2, in order from P1. Steps you don't need stay at 0 bar, 0 s. The last
-  step gets 10 spare seconds; P5 (used only by full 5-step profiles) has no
-  time and runs until you stop the shot.
-- **By hand with the paddle:** a phase-by-phase guide with a paddle % to start
-  from, the pressure to aim for on the gauge, and when to move on.
+**Open it here: https://adnn-alc.github.io/lelit3-profile-converter/**
 
-**Use it here: https://adnn-alc.github.io/lelit3-profile-converter/**
+## What you get
 
-It runs entirely in the browser. Nothing to install, nothing uploaded.
+- **On the machine:** up to 5 pressure steps (bar and seconds) to program into
+  coffee button 1 or 2. Steps you don't need stay at 0 bar, 0 s.
+- **By hand with the paddle:** a phase-by-phase guide with where to put the
+  paddle, what the gauge should read, and when to move on.
+- **A chart** comparing the original pressure with what the Lelit will do.
 
-## What it reads
+## How to use it
 
-| Source | How |
+1. Paste a profile link, or open a profile `.json` file.
+2. Pick the shortest step you want (2–5 s). Short wiggles get folded into
+   longer steps.
+3. Program the steps into your machine, or follow the paddle guide.
+4. Dial in with the grind: if the gauge stays below the targets, grind finer;
+   if it overshoots or the shot runs fast, go coarser. Stop the shot at the
+   target weight on your scale.
+
+## Supported profiles
+
+| Machine | Use |
 | --- | --- |
 | Meticulous | A [metprofiles.link](https://metprofiles.link) profile link, or an exported `.json` file |
-| Decent | A [visualizer.coffee](https://visualizer.coffee) shot link (uses the real recorded pressure), or a profile / shot `.json` file |
-| Fellow Series 1 | A form for the numbers on a brew.link page (Fellow doesn't let other sites read those pages) |
+| Decent | A [visualizer.coffee](https://visualizer.coffee) shot link, or a profile `.json` file |
+| Fellow Series 1 | The numbers from a brew.link page, typed into the built-in form |
 
-Links can be shared: the page puts the profile link in its own address, for
-example `…/?u=https://metprofiles.link/profile/<id>`.
+Shot links from visualizer.coffee convert best, because they contain the real
+pressure the machine recorded. Other profiles are simulated with an average
+puck; the grind slider adjusts it.
 
-## How it converts
+To share a conversion, copy the page address after converting. It includes the
+profile link.
 
-1. **Read** the profile into one common shape: phases that control pressure,
-   flow or pump power, with their exit conditions and limits.
-2. **Get a pressure curve.** Recorded Decent shots use the real data. Other
-   profiles are simulated against a simple puck model: the basket fills, the
-   puck builds resistance as it saturates, then slowly erodes. The model was
-   tuned against real Decent shots (pressure within about 0.5–1.5 bar rms).
-   The grind slider changes how hard the puck pushes back.
-3. **Fit up to 5 steps** with dynamic programming: the split with the least
-   error, where no step is shorter than the "shortest step" setting (2–5 s).
-   An extra step has to earn its place.
-4. **Handle the fill.** A 0 bar step would switch the Lelit pump off, so the
-   opening fill uses the step pressure whose free flow matches the original
-   fill flow. A fast climb straight after the fill is left to the Lelit, which
-   ramps up by itself.
-5. **Write the paddle guide** from every original phase, using the Pagaia
-   tables (paddle % → ml/s, profile bar → ml/s).
+## Why it isn't a perfect copy
 
-Meticulous and Decent machines can steer by flow; the Lelit holds a pressure
-or a pump power. So the converter copies the shape and timing of the pressure
-curve, which is what you can see and control on a Lelit.
+Meticulous and Decent machines can steer by flow and let the pressure follow
+the puck. The Lelit holds a target pressure (profiles) or a pump power (paddle)
+instead, and a profile has at most 5 steps. So the converter copies the shape
+and timing of the pressure curve, which is what you can see and control on a
+Lelit. Profiles with many phases are simplified for the machine; the paddle
+guide still follows every phase.
 
-## Things to confirm on a real machine
+## Privacy
 
-These live in [`js/tables.js`](js/tables.js) and are easy to change:
+Everything runs in your browser. Files you open are never uploaded.
 
-- Pressure range and step size for profile steps (assumed 0–10 bar, 0.5 bar steps).
-- How fast the Lelit climbs and drops between steps (assumed 2 and 1.5 bar/s).
-- That a 0 bar, 0 s step is skipped.
-- The Pagaia tables were measured with no coffee in the basket.
+## Offline use
 
-## Run it
-
-Open `index.html` in a browser. That's it. Locally served works too:
-
-```bash
-python3 -m http.server 8765
-```
-
-### Tests
-
-The test runner downloads real profiles and checks the conversions (needs
-Node 18+ and internet, no packages):
-
-```bash
-node test/run.js
-```
-
-Add `--check` to exit with an error when a check fails.
-
-## Files
-
-```
-index.html              page
-css/style.css           styles (light and dark)
-js/tables.js            Pagaia tables, Lelit limits, helpers
-js/sources/meticulous.js  metprofiles.link and Meticulous .json
-js/sources/decent.js      visualizer.coffee and Decent .json
-js/sources/fellow.js      Fellow Series 1 form values
-js/simulate.js          profile → pressure curve (puck model)
-js/fit.js               pressure curve → up to 5 Lelit steps
-js/guide.js             paddle guide
-js/chart.js             canvas chart
-js/load.js              detects what a link or file is
-js/app.js               page wiring
-test/run.js             conversion checks against real profiles
-```
-
-Plain scripts, loaded in order (not ES modules), so the page also works when
-opened straight from disk.
+Download the repository and open `index.html`. Loading links still needs an
+internet connection.
 
 ## License
 

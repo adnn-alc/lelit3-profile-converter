@@ -96,4 +96,6 @@ test/run.js             conversion checks against real profiles
 Plain scripts, loaded in order (not ES modules), so the page also works when
 opened straight from disk.
 
-Profiles belong to their authors.
+## License
+
+[MIT](LICENSE). Profiles you convert belong to their authors.

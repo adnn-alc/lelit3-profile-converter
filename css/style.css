@@ -184,6 +184,7 @@ figcaption { font-size: 14px; color: var(--muted); margin-top: 6px; }
 .lcc .p { font-size: 36px; line-height: 1; font-weight: 500; }
 .lcc .p small { font-size: 17px; color: var(--lcc-dim); font-weight: 400; }
 .lcc .s { font-size: 28px; color: var(--lcc-amber); }
+.lcc .s.stop { font-size: 20px; }
 .lcc .off { color: #5c656b; font-size: 18px; }
 .after { color: var(--muted); font-size: 15px; margin: 12px 0; }
 

@@ -1,10 +1,11 @@
-# Lelit profile converter
+# Lelit3 converter
 
 Turn espresso profiles from other machines into something you can pull on a
 **Lelit Victoria3 or Elizabeth3**:
 
-- **On the machine:** up to 5 pressure steps (bar and seconds) to program into
-  coffee button 1 or 2.
+- **On the machine:** up to 5 pressure steps to program into coffee button 1
+  or 2. P1–P4 have a time; P5 runs until you stop the shot (or the button's
+  max time), so the last step always goes on P5 and unused steps get 0 s.
 - **By hand with the paddle:** a phase-by-phase guide with a paddle % to start
   from, the pressure to aim for on the gauge, and when to move on.
 
@@ -50,7 +51,7 @@ These live in [`js/tables.js`](js/tables.js) and are easy to change:
 
 - Pressure range and step size for profile steps (assumed 0–10 bar, 0.5 bar steps).
 - How fast the Lelit climbs and drops between steps (assumed 2 and 1.5 bar/s).
-- What happens when the last step runs out (the page suggests adding seconds to it).
+- That a 0 s step is skipped, so unused P2–P4 can sit between the opening steps and P5.
 - The Pagaia tables were measured with no coffee in the basket.
 
 ## Run it

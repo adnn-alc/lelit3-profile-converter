@@ -52,6 +52,9 @@ function rms(a, b) {
       check(steps.length >= 1 && steps.length <= 5, `${profile.name}: ${steps.length} steps`);
       check(steps.every((s) => s.seconds >= Math.min(minSeconds, total)), `${profile.name}: a step is shorter than ${minSeconds} s`);
       check(steps.every((s) => s.pressure >= 0 && s.pressure <= 10 && (s.pressure * 2) % 1 === 0), `${profile.name}: pressure out of range or not in 0.5 steps`);
+      const slots = LC.toSlots(steps);
+      check(slots.length === 5 && slots[4].untilStop && slots[4].pressure === steps[steps.length - 1].pressure, `${profile.name}: last step isn't on P5`);
+      check(slots.slice(0, 4).filter((s) => s.pressure !== null).length === steps.length - 1, `${profile.name}: wrong number of timed slots`);
       check(Math.abs(total - Math.ceil(sim.total)) <= 1, `${profile.name}: step time ${total} vs shot ${sim.total.toFixed(1)}`);
       if (minSeconds === 4) {
         console.log(`\n== ${profile.name} (${profile.source}) ${profile.temperature}°C, ${profile.targetWeight} g, ~${sim.total.toFixed(0)} s, ${sim.recorded ? "recorded" : "simulated"}`);

@@ -138,6 +138,7 @@
     const sim = LC.simulate(profile, { resistance: state.grind });
     const intent = LC.intentCurve(sim.curve);
     const steps = LC.fitSteps(intent, { minSeconds: state.minSeconds });
+    const slots = LC.toSlots(steps);
     const total = steps.reduce((a, s) => a + s.seconds, 0);
     const response = LC.lelitResponse(steps, total);
     const guide = LC.buildGuide(sim, profile);
@@ -183,16 +184,15 @@
     $("warnings").textContent = warn.join(" ");
 
     // Machine steps
-    const rows = [];
-    for (let i = 0; i < LC.LELIT.maxSteps; i++) {
-      const s = steps[i];
-      rows.push(s
-        ? `<li><span class="k">P${i + 1}</span><span class="p">${s.pressure.toFixed(1)} <small>bar</small></span><span class="s">${s.seconds} s</span></li>`
-        : `<li><span class="k">P${i + 1}</span><span class="off">off</span><span class="off">0 s</span></li>`);
-    }
-    $("lcc").innerHTML = rows.join("");
-    const stopAt = profile.targetWeight > 0 ? ` Stop when the scale reaches ${fmt1(profile.targetWeight)} g.` : "";
-    $("lcc-after").textContent = `Shot length ${total} s at ${fmt1(profile.temperature)}°C.${stopAt} If your shot runs longer, add seconds to the last step.`;
+    $("lcc").innerHTML = slots.map((s) => {
+      const k = `<span class="k">P${s.slot}</span>`;
+      if (s.untilStop) return `<li>${k}<span class="p">${s.pressure.toFixed(1)} <small>bar</small></span><span class="s stop">until stop</span></li>`;
+      if (s.pressure === null) return `<li>${k}<span class="off">not used</span><span class="off">0 s</span></li>`;
+      return `<li>${k}<span class="p">${s.pressure.toFixed(1)} <small>bar</small></span><span class="s">${s.seconds} s</span></li>`;
+    }).join("");
+    const stopAt = profile.targetWeight > 0 ? `Stop the shot at ${fmt1(profile.targetWeight)} g on the scale, around ${total} s in.` : `Stop the shot around ${total} s in.`;
+    const skipped = slots.some((s) => s.pressure === null) ? " Unused steps are set to 0 s so they're skipped." : "";
+    $("lcc-after").textContent = `Brew at ${fmt1(profile.temperature)}°C. P5 runs until you stop the shot or the button's max time ends, so set the max time a little longer than the shot. ${stopAt}${skipped}`;
 
     // Paddle guide
     $("guide").innerHTML = guide.map((g) => `
@@ -208,9 +208,9 @@
       </li>`).join("");
 
     state.copyText = [
-      `Lelit profile: ${profile.name}`,
-      ...Array.from({ length: LC.LELIT.maxSteps }, (_, i) => steps[i] ? `P${i + 1}  ${steps[i].pressure.toFixed(1)} bar  ${steps[i].seconds} s` : `P${i + 1}  off`),
-      `Shot length ${total} s, ${fmt1(profile.temperature)}°C${profile.targetWeight > 0 ? `, stop at ${fmt1(profile.targetWeight)} g` : ""}`,
+      `Lelit3 profile: ${profile.name}`,
+      ...slots.map((s) => s.untilStop ? `P${s.slot}  ${s.pressure.toFixed(1)} bar  until stop` : s.pressure === null ? `P${s.slot}  0 s (not used)` : `P${s.slot}  ${s.pressure.toFixed(1)} bar  ${s.seconds} s`),
+      `${fmt1(profile.temperature)}°C, stop at ${profile.targetWeight > 0 ? `${fmt1(profile.targetWeight)} g, ` : ""}around ${total} s`,
       state.url ? `From ${state.url}` : "",
     ].filter(Boolean).join("\n");
   }

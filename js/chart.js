@@ -25,7 +25,7 @@
     let acc = 0;
     for (let i = 0; i < steps.length; i++) {
       acc += steps[i].seconds;
-      if (t < acc || i === steps.length - 1) return { i, p: steps[i].pressure };
+      if (t < acc || i === steps.length - 1) return { slot: steps[i].slot || i + 1, p: steps[i].pressure };
     }
     return null;
   }
@@ -94,7 +94,7 @@
       g.font = font(12, 500);
       g.textAlign = "left";
       g.textBaseline = "top";
-      if (x1 - x0 > 22) g.fillText(`P${i + 1}`, x0 + 5, pad.t + 4);
+      if (x1 - x0 > 22) g.fillText(`P${s.slot || i + 1}`, x0 + 5, pad.t + 4);
       acc += s.seconds;
     });
 
@@ -139,7 +139,7 @@
       const rows = [
         [`${hoverT.toFixed(1)} s`, ink],
         [`Original ${so == null ? "–" : so.toFixed(1)} bar`, src],
-        [st ? `P${st.i + 1} target ${st.p.toFixed(1)} bar` : "", lelit],
+        [st ? `P${st.slot} target ${st.p.toFixed(1)} bar` : "", lelit],
         [`Lelit gauge ≈ ${re == null ? "–" : re.toFixed(1)} bar`, muted],
       ].filter((r) => r[0]);
       g.font = font(13);

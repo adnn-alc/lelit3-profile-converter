@@ -82,5 +82,20 @@
     return steps;
   }
 
+  // Places fitted steps on the machine's P1–P5. On the Lelit3, P5 has no
+  // time: it runs until the shot is stopped (or the button's max time). So the
+  // last step always goes on P5, earlier ones on P1 onwards, and any unused
+  // slots in between are set to 0 s.
+  function toSlots(steps) {
+    const n = LC.LELIT.maxSteps;
+    const slots = Array.from({ length: n }, (_, i) => ({ slot: i + 1, pressure: null, seconds: 0, untilStop: false }));
+    if (!steps.length) return slots;
+    steps.slice(0, -1).forEach((s, i) => Object.assign(slots[i], { pressure: s.pressure, seconds: s.seconds }));
+    Object.assign(slots[n - 1], { pressure: steps[steps.length - 1].pressure, seconds: null, untilStop: true });
+    steps.forEach((s, i) => (s.slot = i === steps.length - 1 ? n : i + 1));
+    return slots;
+  }
+
   LC.fitSteps = fitSteps;
+  LC.toSlots = toSlots;
 })();
